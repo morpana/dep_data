@@ -6,14 +6,9 @@ import sys
 import rosbag
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import re
 #from matplotlib.font_manager import FontProperties
-
-# some constants
-position_to_rads = 2.0*3.14159/(2000.0*53.0);
-displacement_to_N = 0.237536
-base_files = ["/media/markus/OS/Users/Sefi/Dropbox/data/steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag","/media/markus/OS/Users/Sefi/Dropbox/data/steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag", "/media/markus/OS/Users/Sefi/Dropbox/data/steps_fb_sd/0_rising/steps_fb_sd_0_rising_2017-09-14-23-37-30.bag"]
-base_times = [(16.828+1505413374.96, 19.395+1505413374.96),(30.919+1505413374.96,33.516+1505413374.96),(37.353+1505425050.4,39.785+1505425050.4)]
-matrix_filename_to_base_index = {'front_back.dep':0, 'front_side.dep':1, 'side_down.dep':2}
 
 def getData(file,start_time,end_time,transition_stuff=[False,0,0,0]): #transition_stuff = [bool,int motor, float trigger_level, bool rising_edge]
 	pos = []
@@ -57,12 +52,6 @@ def getData(file,start_time,end_time,transition_stuff=[False,0,0,0]): #transitio
 	result.append(force[start_time:end_time])
 	result.append(time[start_time:end_time])
 	return result
-
-# obtain baseline
-fb_base = getData(base_files[0],base_times[0][0],base_times[0][1])
-fs_base = getData(base_files[1],base_times[1][0],base_times[1][1])
-sd_base = getData(base_files[2],base_times[2][0],base_times[2][1])
-baseline = [fb_base,fs_base,sd_base]
 
 class transition:
 	file = ''
@@ -155,7 +144,7 @@ def getRMSvals(transition_file):
 		results, low, index  = allRMS(transition)
 		transition.rms = low
 		ret.append(transition)
-		print low, transition.prev_m, transition.m
+		print low, transition.prev_m, transition.m, transition.duration, transition.trigger_level, transition.trigger_edge
 		'''
 		x = transition.data[2]
 		y = np.transpose(transition.data[0])
@@ -172,9 +161,6 @@ def getRMSvals(transition_file):
 		'''
 	return ret
 
-import os
-import re
-
 def getFiles(dir_name,regex):
 	results = []
 	for root, dirs, files in os.walk(dir_name):
@@ -184,20 +170,45 @@ def getFiles(dir_name,regex):
 				#print os.path.join(root,file)
 	return results
 
-def allData():
-	folder = "/media/markus/OS/Users/Sefi/Dropbox/data/steps_fb_fs/" #sys.argv[1]
+def main(path, folder):
+	# some constants
+	global position_to_rads
+	global displacement_to_N
+	global base_files
+	global base_times
+	global matrix_filename_to_base_index
+
+	# obtain baseline
+	global fb_base
+	global fs_base
+	global sd_base
+	global baseline
+	
+	position_to_rads = 2.0*3.14159/(2000.0*53.0);
+	displacement_to_N = 0.237536
+	base_files = [path+"steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag",path+"steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag", path+"steps_fb_sd/0_rising/steps_fb_sd_0_rising_2017-09-14-23-37-30.bag"]
+	base_times = [(16.828+1505413374.96, 19.395+1505413374.96),(30.919+1505413374.96,33.516+1505413374.96),(37.353+1505425050.4,39.785+1505425050.4)]
+	matrix_filename_to_base_index = {'front_back.dep':0, 'front_side.dep':1, 'side_down.dep':2}
+
+	fb_base = getData(base_files[0],base_times[0][0],base_times[0][1])
+	fs_base = getData(base_files[1],base_times[1][0],base_times[1][1])
+	sd_base = getData(base_files[2],base_times[2][0],base_times[2][1])
+	baseline = [fb_base,fs_base,sd_base]
+
 	regex = re.compile(".*?\.bag")
-	files = getFiles(folder,regex)
+	files = getFiles(path+folder,regex)
 	transitions = []
 	for file in files:
 		print file
 		transitions.append(getRMSvals(file))
 		#print transitions[0]
 	return transitions
+
 '''
 to do:
 done - perform calculation for all transitions in a file
 done - plot lowest RMS baseline position on top of transition
 '''
 
-#allData()
+#folder = sys.argv[1]
+#main(folder)
