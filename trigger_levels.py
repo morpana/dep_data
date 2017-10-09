@@ -16,7 +16,6 @@ motor_to_muscle = [0, 1, 0, 2, 6, 5, 0, 0, 0, 0, 4, 0, 3, 0]
 position_to_rads = 2.0*3.14159/(2000.0*53.0);
 displacement_to_N = 0.237536
 
-
 def getData(file,start_time,end_time,transition_stuff=[False,0,0,0]): #transition_stuff = [bool,int motor, float trigger_level, bool rising_edge]
 	pos = []
 	force = []
@@ -95,23 +94,34 @@ def intersections(behv1, behv2):
 		else:
 			behv2 = behv2[:-1]        
 	a, b, index = allRMS(behv1,behv2)
+	#fig = plt.figure(1)
+	#plt.plot(behv1)
 	behv2 = np.roll(behv2,index,axis=0)
+	#fig = plt.figure(2)
+	#plt.plot(behv2)
+	#plt.show()
 	muscle_rms = muscleRMS(behv1,behv2)
 	# calculate all RMS
-	results = []
-	for j in range(behv1.shape[1]):
-		sect = []
-		# use arbitrary cutoff RMS of 0.5 to not calculate other than muscle 2 intersection
-		if muscle_rms[j] > 0.5:        
-			diff = behv1[0][j] - behv2[0][j]
-			for i in range(1,behv1.shape[0]):
-				prev_diff = diff
-				diff = behv1[i][j] - behv2[i][j]
-				if prev_diff/diff < 0:
-					print "Motor: ", motor_to_muscle[j], ", Index: ", i-1
-					sect.append((i-1,behv1[i-1,j]))
-			results.append(sect)
-	return results
+	trigger_motors = []
+	trigger_levels = []
+	trigger_edges = []
+	distance = []
+	diff = behv1[0,:] - behv2[0,:]
+	for i in range(1,behv1.shape[0]):
+		prev_diff = diff
+		diff = behv1[i,:] - behv2[i,:]
+		for j in range(behv1.shape[1]):
+			if muscle_rms[j] > 0.5: 
+				if prev_diff[j]/diff[j] < 0:
+					if diff[j] > 0:
+						edge = 1
+					else:
+						edge = 0
+					trigger_motors.append(j)
+					trigger_levels.append(behv1[i-1,j]/position_to_rads)
+					trigger_edges.append(edge)
+					distance.append(abs(i-index))
+	return trigger_motors,trigger_levels,trigger_edges, distance
 
 def main():
 	path = '/media/markus/OS/Users/Sefi/Dropbox/data/'
@@ -120,9 +130,9 @@ def main():
 
 	fb_base = getData(base_files[0],base_times[0][0],base_times[0][1])
 	fs_base = getData(base_files[1],base_times[1][0],base_times[1][1])
-	#sd_base = getData(base_files[2],base_times[2][0],base_times[2][1])
-	trigger_levels = intersections(fb_base[0],fs_base[0])
-	return trigger_levels
+	sd_base = getData(base_files[2],base_times[2][0],base_times[2][1])
+	trigger_motors,trigger_levels,trigger_edges,distance = intersections(fb_base[0],fs_base[0])
+	return trigger_motors,trigger_levels,trigger_edges,distance
 
-trigger_levels = main()
-print trigger_levels
+trigger_motors,trigger_levels,trigger_edges,distance = main()
+print trigger_motors,trigger_levels,trigger_edges,distance
