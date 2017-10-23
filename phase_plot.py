@@ -14,9 +14,6 @@ def getWeights(filename):
 	bag.close()
 	return np.array(weights), np.array(times)
 
-filename = "/home/roboy/dep_data/data/combination/10FB04FS_04FB10FS_200s_2017-10-18-12-50-31.bag"
-weights, times = getWeights(filename)
-
 # obtain data from file
 def getData(filename):
     position_to_rads = 2.0*3.14159/(2000.0*53.0);
@@ -35,37 +32,60 @@ def getData(filename):
     force = np.array(force)*displacement_to_N
     return time, pos, force
 
-time, pos, force = getData(filename)
-
 # obtain peaks of given muscle data
 from scipy.signal import argrelextrema
 def getPeaks(position):
     indices = np.array(argrelextrema(position, np.less))
     return indices
 
-##### Obtaining muscle and reference peak indices #####
-# For FB to FS
-# change muscle = muscle 2 i.e. position[:,3]
-muscle = pos[:,3]
-muscle_peaks = getPeaks(muscle)[0]
-# reference muscle = muscle 5 i.e. position[:,5]
-ref = pos[:,5]
-ref_peaks = getPeaks(ref)[0]
+def movingAvg(data, window_size):
+    a = []
+    for i in range(len(data)):
+        a.append(np.ma.average(data[np.clip(i-int(window_size/2),0,len(data)):np.clip(i+int(window_size/2),0,len(data))]))
+    return np.array(a)
 
-# target muscle has 3 peaks after end of experiment -> remove these
-muscle_peaks = muscle_peaks[:-3]
-# reference muscle has 4 peaks after end of experiment -> remove these
-ref_peaks = ref_peaks[:-4]
+# remove indices above/below cutoff times from peaks
+def trim(indices,t_start,t_end):
+    i_start = int(t_start/0.020)
+    i_end = int(t_end/0.020)
+    indices[indices < i_start] = 0
+    indices[indices > i_end] = 0
+    indices = np.trim_zeros(indices)
+    return indices
 
 
-##### Behavior period and reference distance #####
+def main(filename, muscle, ref_muscle, t_start, t_end):
+	weights, times = getWeights(filename)
+	time, pos, force = getData(filename)
 
-avg_period = (1358.5-717.0)/5
+	muscle_data = movingAvg(pos[:,muscle],3)
+	muscle_peaks = getPeaks(muscle_data)[0]
+
+	muscle_peaks = trim(muscle_peaks,t_start,t_end)
+
+	ref_data = movingAvg(pos[:,ref_muscle],3)
+	ref_peaks = getPeaks(ref_data)[0]
+	ref_peaks = trim(ref_peaks,t_start,t_end)
+
+	avg_dist = np.ma.average((ref_peaks-np.roll(ref_peaks,1))[1:])
+	#std_dist = np.std((ref_peaks-np.roll(ref_peaks,1))[1:])
+
+	##### Phase plot #####
+	y = (muscle_peaks-ref_peaks)/avg_dist*360
+	x = np.around(times[muscle_peaks]-times[0],2)
+	plt.figure(1)
+	plt.plot(x,y)
+	plt.show()
+
+# recording file
+filename = "/home/roboy/dep_data/data/combination/10FB04FS_04FB10FS_200s_2017-10-18-12-50-31.bag"
+# start and end time for experiment in recording
+t_start = 4.3
+t_end = 205.0
+# index of muscle of interest and reference muscle
+muscle = 3
+ref_muscle = 5
+# Behavior info: distance of muscle of interest to reference muscle
 dist = 758.0 - 808.0
 
-##### Phase plot #####
-y = ((muscle_peaks-ref_peaks)-dist)/avg_dist*360
-x = np.around(times[muscle_peaks]-times[0],2)
-plt.figure(1)
-plt.plot(x,y)
-plt.show()
+main(filename, muscle, ref_muscle, t_start, t_end)

@@ -23,7 +23,21 @@ def getFigsize(scale):
     return fig_size
 
 # constants
-filename = sys.argv[1]
+#filename = "/home/roboy/dep_data/data/combination/10FB04FS_to_04FB10FS_200s_2017-10-13-20-55-02.bag"
+#filename = "/home/roboy/dep_data/data/combination/10FB04SD_to_04FB10SD_200s_2017-10-13-20-47-40.bag"
+#filename = "/home/roboy/dep_data/data/combination/10FS04SD_to_04FS10SD_200s_2017-10-13-21-00-08.bag"
+#filename = "/home/roboy/dep_data/data/combination/10SD04FB_to_04SD10FB_200s_2017-10-13-21-09-53.bag"
+'''
+def movingAvg(data, window_size):
+    a = []
+    for i in range(len(data)):
+        a.append(np.ma.average(data[np.clip(i-int(window_size/2),0,len(data)):np.clip(i+int(window_size/2),0,len(data))]))
+    return a
+'''
+
+filename = "/home/roboy/dep_data/data/combination/10FB04FS_04FB10FS_200s_2017-10-18-12-50-31.bag"
+#filename = "/home/roboy/dep_data/data/combination/10FB04SD_04FB10SD_200s_2017-10-18-12-55-03.bag"
+#filename = "/home/roboy/dep_data/data/transitions/steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag"
 position_to_rads = 2.0*3.14159/(2000.0*53.0);
 displacement_to_N = 0.237536
 #blue, red, green, yellow, magenta, orange, yellow, pink, lightGreen, darkRed, blue, red, green , yellow, magenta
@@ -43,6 +57,65 @@ for topic, msg, t in bag.read_messages(topics=["/roboy/middleware/MotorStatus"])
     time.append(t.to_sec())
 bag.close()
 
+# read data from bag
+bag = rosbag.Bag(filename)
+for topic, msg, t in bag.read_messages(topics=["/roboy_dep/linear_combination"]):
+	print msg.weights, t.to_sec()
+bag.close()
+
+'''
+transitions = []
+bag = rosbag.Bag(filename)
+for topic, msg, t in bag.read_messages(topics=["/roboy_dep/transition"]):
+	#print msg.duration
+	transitions.append(msg.duration)
+bag.close()
+transitions = np.array(transitions)
+
+
+bag = rosbag.Bag(filename)
+i = 0
+for topic, msg, t in bag.read_messages(topics=["/roboy_dep/transition_start"]):
+    print "Duration (s): ", transitions[i], " start time (s): ", t.to_sec()-time[0]
+    i += 1
+bag.close()
+
+# convert to numpy arrays for convenience
+time = np.array(time)
+time = time-time[0]
+pos = np.array(pos)*position_to_rads
+force = np.array(force)*displacement_to_N
+
+t_ = []
+prev_t = 0
+bag = rosbag.Bag(filename)
+for topic, msg, t in bag.read_messages(topics=["/roboy/middleware/MotorStatus","/roboy_dep/depLoadMatrix"]):
+    if topic == "/roboy/middleware/MotorStatus":
+        t_.append(0)
+    else:
+        t_[-1] = 1
+bag.close()
+t_ = np.array(t_)
+plt.figure(3)
+plt.plot(time,t_)
+'''
+'''
+bag = rosbag.Bag(filename)
+for topic, msg, t in bag.read_messages(topics=["/roboy_dep/depLoadMatrix"]):
+	try:
+		m
+	except NameError:
+		m = msg.depMatrix
+		t_ = t
+	else:
+		prev_m = m
+		m = msg.depMatrix
+		if m != prev_m:
+			print t.to_sec()-t_.to_sec()
+			break
+bag.close()
+'''
+
 # convert to numpy arrays for convenience
 time = np.array(time)
 time = time-time[0]
@@ -55,7 +128,7 @@ for motor in range(pos[0,:].size):
 		#print "Motor "+str(motor)+" not connected\n"
 		continue
 	plt.figure(1)
-	plt.plot(time,pos[:,motor],color=color_pallette[motor], linewidth=1.0, label="Muscle "+str(motor_to_muscle[motor]))
+	plt.plot(pos[:,motor],color=color_pallette[motor], linewidth=1.0, label="Muscle "+str(motor_to_muscle[motor]))
 	plt.figure(2)
 	plt.plot(time,force[:,motor],color=color_pallette[motor], linewidth=1.0, label="Muscle "+str(motor_to_muscle[motor]))
 
