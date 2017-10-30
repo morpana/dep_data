@@ -22,11 +22,6 @@ def getFigsize(scale):
     fig_size = [fig_width,fig_height]
     return fig_size
 
-# constants
-#filename = "/home/roboy/dep_data/data/combination/10FB04FS_to_04FB10FS_200s_2017-10-13-20-55-02.bag"
-#filename = "/home/roboy/dep_data/data/combination/10FB04SD_to_04FB10SD_200s_2017-10-13-20-47-40.bag"
-#filename = "/home/roboy/dep_data/data/combination/10FS04SD_to_04FS10SD_200s_2017-10-13-21-00-08.bag"
-#filename = "/home/roboy/dep_data/data/combination/10SD04FB_to_04SD10FB_200s_2017-10-13-21-09-53.bag"
 '''
 def movingAvg(data, window_size):
     a = []
@@ -35,8 +30,10 @@ def movingAvg(data, window_size):
     return a
 '''
 
-filename = "/home/roboy/dep_data/data/combination/10FB04FS_04FB10FS_200s_2017-10-18-12-50-31.bag"
+#filename = "/home/roboy/dep_data/data/combination/10FB04FS_04FB10FS_200s_2017-10-18-12-50-31.bag"
 #filename = "/home/roboy/dep_data/data/combination/10FB04SD_04FB10SD_200s_2017-10-18-12-55-03.bag"
+#filename = "/home/roboy/dep_data/data/combination/10FS04SD_04FS10SD_200s_2017-10-18-12-59-53.bag"
+filename = "/home/roboy/dep_data/data/combination/10SD04FB_04SD10FB_200s_2017-10-18-13-04-33.bag"
 #filename = "/home/roboy/dep_data/data/transitions/steps_fb_fs/0_rising/0_rising_2017-09-14-20-22-54.bag"
 position_to_rads = 2.0*3.14159/(2000.0*53.0);
 displacement_to_N = 0.237536
@@ -124,11 +121,12 @@ force = np.array(force)*displacement_to_N
 
 # add data to plots
 for motor in range(pos[0,:].size):
+	#if motor == 1 or motor == 5:
 	if sum(pos[:,motor]) == 0:
 		#print "Motor "+str(motor)+" not connected\n"
 		continue
 	plt.figure(1)
-	plt.plot(pos[:,motor],color=color_pallette[motor], linewidth=1.0, label="Muscle "+str(motor_to_muscle[motor]))
+	plt.plot(pos[:,motor],color=color_pallette[motor], linewidth=3.0, label="Muscle "+str(motor_to_muscle[motor]))
 	plt.figure(2)
 	plt.plot(time,force[:,motor],color=color_pallette[motor], linewidth=1.0, label="Muscle "+str(motor_to_muscle[motor]))
 

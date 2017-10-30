@@ -144,8 +144,11 @@ def main(file):
 		base = baseline[matrix_filename_to_base_index[transition.m]][0]
 		results = allRMS(data,base)
 		#plot the RMS and select minima
+		print "Final behavior: ", transition.m, ", Start time: ", transition.start
 		plt.figure(1)
 		plt.plot(results)
+		plt.figure(2)
+		plt.plot(data)
 		plt.show()
 
 file = sys.argv[1]
