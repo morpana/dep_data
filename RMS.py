@@ -94,6 +94,7 @@ def getTransitions(file):
 	 	if temp != None:
 	 		tran.data = temp
 	 		trans.append(tran)
+	 	print tran.m, tran.f_type, tran.start, tran.duration
 	bag.close()
 	return trans
 
@@ -209,6 +210,3 @@ to do:
 done - perform calculation for all transitions in a file
 done - plot lowest RMS baseline position on top of transition
 '''
-
-#folder = sys.argv[1]
-#main(folder)
