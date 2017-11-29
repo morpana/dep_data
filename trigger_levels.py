@@ -131,7 +131,7 @@ def main():
 	fb_base = getData(base_files[0],base_times[0][0],base_times[0][1])
 	fs_base = getData(base_files[1],base_times[1][0],base_times[1][1])
 	sd_base = getData(base_files[2],base_times[2][0],base_times[2][1])
-	trigger_motors,trigger_levels,trigger_edges,distance = intersections(fb_base[0],fs_base[0])
+	trigger_motors,trigger_levels,trigger_edges,distance = intersections(fb_base[0],sd_base[0])
 	return trigger_motors,trigger_levels,trigger_edges,distance
 
 trigger_motors,trigger_levels,trigger_edges,distance = main()
