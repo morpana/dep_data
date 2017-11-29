@@ -1,0 +1,14 @@
+- RMS business:
+	- show period staying the same
+	- backpropagate from stable behavior to beginning of transition and calculate rms
+- line to top
+- transition period two lines (transfer function wise)
+- transitionb background
+- metnion percentages where influences begin to show up
+- transition start and end -> recodunct experiments for combination
+- same time scale 
+
+- conclusion of filling space with variety of trajectories given importance of coincident states
+- indiviudal triggers for muscles to compesnate for lack of coincident states (not so impoartant if well filled space in terms of varitey of trajectories)
+
+- investigate merged behaviors (different types of conclusions)
